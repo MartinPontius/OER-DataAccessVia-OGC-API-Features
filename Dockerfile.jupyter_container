@@ -1,6 +1,14 @@
 # Use the jupyter/minimal-notebook image as the parent image
 FROM jupyter/minimal-notebook:latest
 
+# Change to root in order to able to install system libraries
+USER root
+
+# Install GDAL and its requirements for the GDAL Python bindings
+RUN apt-get update \
+ && apt-get install --assume-yes --no-install-recommends gdal-bin libgdal-dev g++ \
+ && rm --recursive --force /var/lib/apt/lists/*
+
 # Create a Jupyter Notebook configuration file
 RUN jupyter notebook --generate-config
 
@@ -9,6 +17,7 @@ RUN echo "c.NotebookApp.iopub_data_rate_limit = 1000000000" >> /home/$NB_USER/.j
 
 # Install required dependencies
 RUN pip install --no-cache-dir \
+    GDAL=="$(gdal-config --version).*" \
     folium>=0.12.1 \
     jupyter \
     matplotlib>=3.0.0 \
